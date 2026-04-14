@@ -2,7 +2,7 @@ import os
 from binance.client import Client
 from binance.exceptions import BinanceAPIException
 from dotenv import load_dotenv
-from bot.logging_config import logger
+from bot.logging_config import logger, log_api_interaction
 
 # Load environment variables from .env file
 load_dotenv()
@@ -45,13 +45,16 @@ class BinanceClient:
             bool: True if connection is successful, False otherwise.
         """
         client = self.get_client()
+        log_api_interaction("REQUEST", "ACCOUNT_INFO", {"test": True})
         try:
             # Fetch futures account info to verify connectivity and credentials
             account_info = client.futures_account()
+            log_api_interaction("RESPONSE", "ACCOUNT_INFO", {"status": "success", "canDeposit": account_info.get('canDeposit')})
             logger.info("Successfully connected to Binance Futures Testnet.")
             return True
         except BinanceAPIException as e:
-            logger.error(f"Binance API Error during connection test: {e.message} (Code: {e.code})")
+            error_data = {"error": e.message, "code": e.code}
+            log_api_interaction("ERROR", "ACCOUNT_INFO", error_data)
         except Exception as e:
             logger.error(f"Unexpected error during connection test: {str(e)}")
         

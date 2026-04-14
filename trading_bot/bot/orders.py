@@ -1,6 +1,6 @@
 from binance.exceptions import BinanceAPIException, BinanceOrderException
 from bot.client import BinanceClient
-from bot.logging_config import logger
+from bot.logging_config import logger, log_api_interaction
 
 # Initialize the Binance client
 try:
@@ -27,11 +27,6 @@ def _format_order_response(response):
 def place_market_order(symbol: str, side: str, quantity: float):
     """
     Places a MARKET order on Binance Futures.
-    
-    Args:
-        symbol (str): Trading pair (e.g., 'BTCUSDT')
-        side (str): 'BUY' or 'SELL'
-        quantity (float): Amount to trade
     """
     if client is None:
         logger.error("Binance client not initialized. Cannot place order.")
@@ -44,16 +39,20 @@ def place_market_order(symbol: str, side: str, quantity: float):
         "quantity": quantity
     }
 
-    logger.info(f"Placing MARKET order: {payload}")
+    # Structured Request Log
+    log_api_interaction("REQUEST", "MARKET_ORDER", payload)
 
     try:
         response = client.futures_create_order(**payload)
         formatted_res = _format_order_response(response)
-        logger.info(f"MARKET order successful: {formatted_res}")
+        
+        # Structured Response Log
+        log_api_interaction("RESPONSE", "MARKET_ORDER", formatted_res)
         return formatted_res
 
     except (BinanceAPIException, BinanceOrderException) as e:
-        logger.error(f"Binance API Error placing MARKET order: {e.message} (Code: {e.code})")
+        error_data = {"error": e.message, "code": e.code, "symbol": symbol}
+        log_api_interaction("ERROR", "MARKET_ORDER", error_data)
         return {"error": e.message, "code": e.code}
     except Exception as e:
         logger.error(f"Unexpected error placing MARKET order: {str(e)}")
@@ -62,18 +61,11 @@ def place_market_order(symbol: str, side: str, quantity: float):
 def place_limit_order(symbol: str, side: str, quantity: float, price: float):
     """
     Places a LIMIT order on Binance Futures.
-    
-    Args:
-        symbol (str): Trading pair (e.g., 'BTCUSDT')
-        side (str): 'BUY' or 'SELL'
-        quantity (float): Amount to trade
-        price (float): Limit price
     """
     if client is None:
         logger.error("Binance client not initialized. Cannot place order.")
         return None
 
-    # Common policy for LIMIT orders: Good Till Cancel (GTC)
     payload = {
         "symbol": symbol.upper(),
         "side": side.upper(),
@@ -83,16 +75,20 @@ def place_limit_order(symbol: str, side: str, quantity: float, price: float):
         "timeInForce": "GTC"
     }
 
-    logger.info(f"Placing LIMIT order: {payload}")
+    # Structured Request Log
+    log_api_interaction("REQUEST", "LIMIT_ORDER", payload)
 
     try:
         response = client.futures_create_order(**payload)
         formatted_res = _format_order_response(response)
-        logger.info(f"LIMIT order successful: {formatted_res}")
+        
+        # Structured Response Log
+        log_api_interaction("RESPONSE", "LIMIT_ORDER", formatted_res)
         return formatted_res
 
     except (BinanceAPIException, BinanceOrderException) as e:
-        logger.error(f"Binance API Error placing LIMIT order: {e.message} (Code: {e.code})")
+        error_data = {"error": e.message, "code": e.code, "symbol": symbol}
+        log_api_interaction("ERROR", "LIMIT_ORDER", error_data)
         return {"error": e.message, "code": e.code}
     except Exception as e:
         logger.error(f"Unexpected error placing LIMIT order: {str(e)}")
