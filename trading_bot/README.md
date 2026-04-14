@@ -1,55 +1,101 @@
-# Binance Futures Testnet Trading Bot
+# Binance Futures Testnet Trading Bot (Python CLI)
 
-A production-quality Python CLI application to place orders on the Binance Futures Testnet.
+A professional-grade CLI application for executing orders on the Binance Futures Testnet. Built with a modular architecture, robust validation, and structured logging.
 
-## Project Overview
-This bot allows users to interact with Binance Futures Testnet via a command-line interface. It supports:
-- Placing MARKET and LIMIT orders.
-- Order validation.
-- Robust error handling and logging.
+---
 
-## Features
-- **Project Structure**: Modular and scalable.
-- **Validation**: Strict input validation before sending to Binance.
-- **Logging**: Comprehensive logs stored in `logs/trading.log`.
-- **CLI**: Powered by `Typer` for a modern terminal experience.
+## 🚀 Features
 
-## Setup Instructions
+- **Production-Quality Structure**: Clean separation of concerns (Logic, Validation, Client, CLI).
+- **Modern CLI**: Intuitive interface powered by `Typer` and `Rich`.
+- **Structured Logging**: Automatic API request/response logging with sensitive data filtering.
+- **Strict Validation**: Pre-flight checks for symbols, quantities, and order types to prevent API waste.
+- **Fail-Safe Mode**: Confirmation prompts before order execution.
 
-### 1. Prererequisites
-- Python 3.8+
-- Binance Testnet API Credentials
+---
 
-### 2. Environment Setup
-1. Clone the repository and navigate to the project folder.
-2. Create a virtual environment:
-   ```bash
-   python -m venv venv
-   ```
-3. Activate the virtual environment:
-   - Windows: `venv\Scripts\activate`
-   - Linux/macOS: `source venv/bin/activate`
+## 🛠️ Project Structure
 
-### 3. Install Dependencies
-```bash
-pip install -r requirements.txt
+```text
+trading_bot/
+├── bot/
+│   ├── __init__.py
+│   ├── client.py          # Binance API connection & auth
+│   ├── orders.py          # MARKET and LIMIT order execution logic
+│   ├── validators.py      # Strict input validation logic
+│   ├── logging_config.py  # Structured logging & API interaction tracking
+│   └── cli.py             # CLI entry point and user interaction
+├── logs/
+│   └── trading.log        # Rolling logs for auditing
+├── .env                   # API Credentials (ignored by git)
+├── requirements.txt       # Project dependencies
+└── README.md              # Project documentation
 ```
 
-### 4. Configuration
-Update the `.env` file with your Binance Testnet API Key and Secret:
+---
+
+## ⚙️ Setup Instructions
+
+### 1. Pre-requisites
+- Python 3.8+
+- [Binance Futures Testnet Account](https://testnet.binancefuture.com) (Generates API Keys)
+
+### 2. Installation
+1. Clone the repository.
+2. Initialize and activate a virtual environment:
+   ```bash
+   python -m venv venv
+   # Windows:
+   venv\Scripts\activate
+   # macOS/Linux:
+   source venv/bin/activate
+   ```
+3. Install dependencies:
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+### 3. Configuration
+Rename the `.env` template or create a new one with your keys:
 ```env
-API_KEY=your_key
-API_SECRET=your_secret
+API_KEY=your_testnet_api_key
+API_SECRET=your_testnet_api_secret
 BASE_URL=https://testnet.binancefuture.com
 ```
 
-### 5. Running the Bot
+---
+
+## 💻 Usage Examples
+
+The tool is invoked as a Python module:
+
+### Place a MARKET Buy Order
+```bash
+python -m bot.cli --symbol BTCUSDT --side BUY --type MARKET --quantity 0.001
+```
+
+### Place a LIMIT Sell Order
+```bash
+python -m bot.cli -s ETHUSDT -d SELL -t LIMIT -q 0.1 -p 3200.50
+```
+
+### Get Help
 ```bash
 python -m bot.cli --help
 ```
 
-## Directory Structure
-- `bot/`: Core application logic.
-- `logs/`: Application logs.
-- `.env`: Environment variables (secret).
-- `requirements.txt`: Dependencies.
+---
+
+## 🛡️ Error Handling
+The bot handles common trading errors gracefully:
+- **Insufficient Margin**: Returns a clear message if your testnet balance is too low.
+- **Invalid Symbol**: Automatically formats input (e.g., `ethusdt` -> `ETHUSDT`) and validates pair existence.
+- **Network Issues**: Retries and clear exception logging via `python-binance`.
+
+---
+
+## 📝 Logging
+Detailed logs are stored in `logs/trading.log`. 
+- **Request**: Logs the payload sent to Binance.
+- **Response**: Logs the unique `orderId` and fill status.
+- **Safety**: API Secrets are never written to log files.
